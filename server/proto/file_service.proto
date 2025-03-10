@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package fileservice;
+
+service FileService {
+  // Upload a file to the remote server
+  rpc UploadFile(stream FileUploadRequest) returns (FileUploadResponse) {}
+  
+  // Download a file from the remote server
+  rpc DownloadFile(FileDownloadRequest) returns (stream FileDownloadResponse) {}
+  
+  // Delete a file from the remote server
+  rpc DeleteFile(FileDeleteRequest) returns (FileDeleteResponse) {}
+  
+  // Rename a file on the remote server
+  rpc RenameFile(FileRenameRequest) returns (FileRenameResponse) {}
+  
+  // List files in a directory
+  rpc ListFiles(ListFilesRequest) returns (ListFilesResponse) {}
+}
+
+message FileMetadata {
+  string filename = 1;
+  string mime_type = 2;
+  int64 size = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string owner = 6;
+}
+
+message FileUploadRequest {
+  oneof data {
+    FileMetadata metadata = 1;
+    bytes chunk = 2;
+  }
+}
+
+message FileUploadResponse {
+  string file_id = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+message FileDownloadRequest {
+  string file_id = 1;
+}
+
+message FileDownloadResponse {
+  oneof data {
+    FileMetadata metadata = 1;
+    bytes chunk = 2;
+  }
+}
+
+message FileDeleteRequest {
+  string file_id = 1;
+}
+
+message FileDeleteResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message FileRenameRequest {
+  string file_id = 1;
+  string new_filename = 2;
+}
+
+message FileRenameResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListFilesRequest {
+  string directory = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message ListFilesResponse {
+  repeated FileMetadata files = 1;
+  int32 total_count = 2;
+  bool has_more = 3;
+} 
