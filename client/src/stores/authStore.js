@@ -8,8 +8,24 @@ export const useAuthStore = create((set) => ({
   token: localStorage.getItem('token'),
   isAuthenticated: false,
   isLoading: true,
+  isGuest: false,
 
   checkAuth: async () => {
+    // Check if this is a remote access request
+    const urlParams = new URLSearchParams(window.location.search);
+    const remoteAccess = urlParams.get('remote_access');
+    
+    if (remoteAccess === 'true') {
+      // Set up guest authentication
+      set({
+        user: { name: 'Remote User', email: 'remote@guest.com', role: 'guest' },
+        isAuthenticated: true,
+        isGuest: true,
+        isLoading: false
+      });
+      return;
+    }
+    
     const token = localStorage.getItem('token');
     if (!token) {
       set({ isLoading: false });
@@ -37,6 +53,17 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  // Create a guest session for remote access
+  createGuestSession: () => {
+    set({
+      user: { name: 'Remote User', email: 'remote@guest.com', role: 'guest' },
+      isAuthenticated: true,
+      isGuest: true,
+      isLoading: false
+    });
+    return { success: true };
+  },
+
   login: async (email, password) => {
     try {
       const response = await axios.post(`${API_URL}/api/auth/login`, {
@@ -50,7 +77,8 @@ export const useAuthStore = create((set) => ({
       set({
         user,
         token,
-        isAuthenticated: true
+        isAuthenticated: true,
+        isGuest: false
       });
 
       return { success: true };
@@ -76,7 +104,8 @@ export const useAuthStore = create((set) => ({
       set({
         user,
         token,
-        isAuthenticated: true
+        isAuthenticated: true,
+        isGuest: false
       });
 
       return { success: true };
@@ -93,7 +122,8 @@ export const useAuthStore = create((set) => ({
     set({
       user: null,
       token: null,
-      isAuthenticated: false
+      isAuthenticated: false,
+      isGuest: false
     });
   }
 })); 

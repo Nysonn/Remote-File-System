@@ -4,7 +4,7 @@ import React from 'react';
 import { CloudIcon } from '@heroicons/react/24/outline';
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, isGuest } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -29,7 +29,18 @@ function ProtectedRoute({ children }) {
     );
   }
 
+  // Allow both authenticated users and guests to access protected routes
   if (!isAuthenticated) {
+    // Check if this is a remote access request from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const remoteAccess = urlParams.get('remote_access');
+    
+    if (remoteAccess === 'true') {
+      // Create a guest session and continue
+      useAuthStore.getState().createGuestSession();
+      return children;
+    }
+    
     return <Navigate to="/login" replace />;
   }
 
